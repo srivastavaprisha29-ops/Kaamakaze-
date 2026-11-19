@@ -5,3 +5,20 @@ dialog{width:min(700px,calc(100% - 28px));max-height:90dvh;padding:24px;border:1
 @media(max-width:675px){.top{align-items:start}.top nav{justify-content:flex-end;gap:8px 13px;font-size:.86rem}.hero,.kai{grid-template-columns:1fr}.hero{gap:8px;padding:50px 0 24px}.collage{height:240px;transform:scale(.8)}.folder-body{align-items:start}.section-title{align-items:start}.stats div{padding:8px;font-size:.85rem}.folder-body .outline{white-space:nowrap}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}}
 @media print{body>*{display:none!important}body{background:white}#print-copy{display:block!important;white-space:pre-wrap;font:11pt/1.45 Arial,sans-serif;margin:0}}
+
+.archive-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(155px,230px);gap:14px;margin-bottom:22px}
+.archive-tools label{font-size:.88rem}
+.folder[data-color="0"]{--folder:var(--yellow)}
+.folder[data-color="1"]{--folder:var(--blue)}
+.folder[data-color="2"]{--folder:var(--pink)}
+.folder[data-color] .folder-body{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(100px,1fr);position:relative;overflow:hidden;min-height:200px}
+.folder[data-color] .outline,.job .outline{margin-top:14px}
+.folder[data-color] p{overflow-wrap:anywhere}
+.folder-preview{display:grid;place-items:center;position:relative;min-height:130px}
+.folder-sheet{position:absolute;top:8px;width:min(220px,90%);min-height:190px;transform:rotate(9deg);padding:18px;background:#fffdf5;border:1px solid;box-shadow:6px 6px 0 #211f1a30;font:650 .72rem/1.65 var(--mono)}
+.folder-sheet::before{content:'';position:absolute;top:-7px;left:32%;width:37%;height:19px;background:#ffffff92;transform:rotate(-14deg)}
+.folder-sheet span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.folder-sheet span:first-child{font-size:.92rem;margin-bottom:7px}
+#resume-sources{display:flex;flex-wrap:wrap;gap:9px}
+#resume-sources p{flex-basis:100%}
+@media(max-width:480px){.archive-tools{grid-template-columns:minmax(0,1fr)}.folder[data-color] .folder-body{grid-template-columns:minmax(0,1fr) minmax(65px,.48fr);gap:8px}.folder-sheet{padding:9px}.folder[data-color] .outline{white-space:normal}.job>.outline{flex-shrink:0}}
