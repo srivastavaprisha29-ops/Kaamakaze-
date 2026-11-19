@@ -67,11 +67,19 @@ function action(label, handler) {
   return button;
 }
 
-function render() {
-  const name = data.profile.name?.split(/\s+/)[0];
-  $('#welcome-name').textContent = name ? ', ' + name : '';
-  $('#folder-count').textContent = data.resumes.length + (data.resumes.length === 1 ? ' resume' : ' resumes');
-  $('#folder-list').replaceChildren();
+function renderFolders() {
+  const list = $('#folder-list');
+  const query = $('#folder-search').value.trim().toLowerCase();
+  const filter = $('#folder-filter').value;
+  const total = data.resumes.length;
+  const matching = new Set(data.resumes.filter(resume =>
+    (filter === 'all' || Boolean(resume.revision) === (filter === 'revision')) &&
+    [resume.role, resume.company].some(value => value?.toLowerCase().includes(query))
+  ).map(resume => resume.id));
+  const label = total === 1 ? ' resume' : ' resumes';
+  $('#folder-count').textContent = (matching.size === total ? total : matching.size + ' of ' + total) + label;
+  $('#archive-tools').hidden = !total;
+  list.replaceChildren();
   if (!data.resumes.length) {
     const folder = element('article', undefined, 'folder');
     const body = element('div', undefined, 'folder-body');
@@ -81,18 +89,35 @@ function render() {
     link.href = '#kai';
     body.append(copy, link);
     folder.append(element('div', 'RESUME FOLDER', 'folder-tab'), body);
-    $('#folder-list').append(folder);
+    list.append(folder);
+  } else if (!matching.size) {
+    list.append(element('p', 'No resumes match your search and filter.', 'empty'));
   }
   for (const [index, resume] of data.resumes.entries()) {
+    if (!matching.has(resume.id)) continue;
     const folder = element('article', undefined, 'folder');
+    folder.dataset.color = (data.resumes.length - index - 1) % 3;
     const body = element('div', undefined, 'folder-body');
     const copy = element('div');
+    const preview = element('div', undefined, 'folder-preview');
+    preview.setAttribute('aria-hidden', 'true');
+    const sheet = element('div', undefined, 'folder-sheet');
+    const excerpt = resume.body.split(/\r?\n/).map(line => line.trim()).filter(Boolean).slice(0, 6);
+    for (const line of excerpt) sheet.append(element('span', line));
+    preview.append(sheet);
     const date = new Date(resume.created).toLocaleDateString(undefined, { dateStyle: 'medium' });
-    copy.append(element('h3', resume.role), element('p', [resume.company, resume.revision ? 'Revision' : '', resume.mode, date].filter(Boolean).join(' · ')));
-    body.append(copy, action('Open ↗', () => openResume(resume)));
+    copy.append(element('h3', resume.role), element('p', [resume.company, resume.revision ? 'Revision' : '', resume.mode, date].filter(Boolean).join(' · ')),
+      action('Open resume ↗', () => openResume(resume)));
+    body.append(copy, preview);
     folder.append(element('div', 'RESUME ' + String(data.resumes.length - index).padStart(2, '0'), 'folder-tab'), body);
-    $('#folder-list').append(folder);
+    list.append(folder);
   }
+}
+
+function render() {
+  const name = data.profile.name?.split(/\s+/)[0];
+  $('#welcome-name').textContent = name ? ', ' + name : '';
+  renderFolders();
   const offers = data.jobs.filter(job => ['Offer received', 'Offer accepted'].includes(job.status));
   $('#stats').replaceChildren();
   for (const [label, count] of [['Tracked', data.jobs.length], ['Offers', offers.length], ['Accepted', offers.filter(job => job.status === 'Offer accepted').length]]) {
@@ -109,7 +134,7 @@ function render() {
     const dates = [job.applied && 'Applied ' + job.applied, job.outcome && 'Outcome ' + job.outcome];
     const resume = data.resumes.find(item => item.id === job.resumeId);
     copy.append(element('h3', job.role), element('p', [job.company, job.status, ...dates].filter(Boolean).join(' · ')));
-    if (resume) copy.append(element('p', 'Resume used: ' + resume.role + (resume.revision ? ' · Revision' : '')));
+    if (resume) copy.append(action('Open resume used ↗', () => openResume(resume)));
     if (job.timeline) copy.append(element('p', job.timeline));
     row.append(copy, action('Edit →', () => openJob(job)));
     $('#job-list').append(row);
@@ -136,12 +161,28 @@ function showMap(show) {
 }
 
 function openResume(resume) {
+  const dialog = $('#resume-dialog');
+  const form = $('#resume-form');
+  if (dialog.open && activeResume !== resume.id) {
+    const current = data.resumes.find(item => item.id === activeResume);
+    if (form.elements.body.value !== current.body && !window.confirm('Discard unsaved edits and open the other version?')) return;
+  }
   activeResume = resume.id;
   $('#resume-title').textContent = resume.role;
-  fill($('#resume-form'), resume);
+  fill(form, resume);
   const labels = resume.sources.map(key => fields[key]?.[0]).filter(Boolean);
-  $('#resume-sources').textContent = labels.length ? 'Profile sections used: ' + labels.join(', ') : '';
-  $('#resume-dialog').showModal();
+  const details = $('#resume-sources');
+  details.replaceChildren();
+  if (labels.length) details.append(element('p', 'Profile sections used: ' + labels.join(', ')));
+  const parent = data.resumes.find(item => item.id === resume.previousId);
+  if (parent) details.append(action('Open previous version ↗', () => openResume(parent)));
+  const next = data.resumes.filter(item => item.previousId === resume.id);
+  for (const version of next) {
+    const date = new Date(version.created).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    details.append(action('Open revision · ' + date + ' ↗', () => openResume(version)));
+  }
+  if (!dialog.open) dialog.showModal();
+  else form.elements.body.focus();
 }
 
 function openJob(job) {
@@ -220,6 +261,8 @@ $('#profile-open').onclick = () => {
 };
 $('#details-tab').onclick = () => showMap(false);
 $('#map-tab').onclick = () => showMap(true);
+$('#folder-search').oninput = renderFolders;
+$('#folder-filter').onchange = renderFolders;
 $('#profile-form').onsubmit = event => {
   event.preventDefault();
   if (commit({ ...data, profile: values(event.target) })) toast('Profile saved.');
@@ -324,6 +367,7 @@ $('#revise').onclick = async event => {
   const result = await generate({ ...target, profile: data.profile, previous: old.body, feedback: job.feedback }, status, event.target);
   if (!result) return;
   const resume = newResume(result, target, true);
+  resume.previousId = old.id;
   if (!commit({ ...data, resumes: [resume, ...data.resumes] })) {
     status.textContent = 'The revised resume could not be saved.';
     return;
