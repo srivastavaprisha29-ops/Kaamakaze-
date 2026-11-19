@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kaamakaze — Resume workspace</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<header class="top"><a class="brand" href="#home"><span>✳</span> KAAMAKAZE</a><nav aria-label="Workspace"><a href="#kai">Kai</a><a href="#folders">Folders</a><a href="#achievements">Achievements</a><button id="profile-open" class="outline">Profile ↗</button></nav></header>
+<main>
+<section class="hero" id="home">
+ <div><p class="eyebrow">YOUR RESUME WORKSPACE</p><h1>Welcome<span id="welcome-name"></span><em>.</em></h1><p>Build a resume for the role you want. Keep every version in your workspace.</p><a class="button" href="#kai">Create with Kai <span>↘</span></a></div>
+ <div class="collage" aria-hidden="true"><div class="back-sheet"></div><div class="sheet"><b>RESUME</b><i></i><hr><hr><hr><hr><i></i><hr><hr></div><div class="sticker">✳</div></div>
+</section>
+<section class="kai" id="kai">
+ <div><p class="eyebrow">RESUME BUILDER</p><h2>Let’s create<br>with Kai<span>.</span></h2><p>Give Kai a job description and the experience you want to draw from.</p><p class="mode" id="mode">Checking Kai availability…</p></div>
+ <form id="kai-form">
+  <div class="pair"><label>Target role<input name="role" required maxlength="120" placeholder="e.g. Machine Learning Intern"></label><label>Company <small>optional</small><input name="company" maxlength="120" placeholder="e.g. Acme"></label></div>
+  <label>Job description<textarea name="description" required maxlength="10000" rows="4" placeholder="Paste the posting here"></textarea></label>
+  <label>New profile notes <small>optional · saved to your profile</small><textarea name="notes" maxlength="8000" rows="3" placeholder="Add experience, projects, skills, or education"></textarea></label>
+  <button class="button yellow" type="submit">Generate resume ✦</button><p class="notice" id="kai-status" role="status"></p>
+ </form>
+</section>
+<section id="folders" class="archive">
+ <div class="section-title"><div><p class="eyebrow">RESUME ARCHIVE</p><h2>Your folders<span>.</span></h2></div><span id="folder-count" class="pill"></span></div>
+ <div id="folder-list"></div>
+</section>
+<section id="achievements" class="tracker">
+ <div class="section-title"><div><p class="eyebrow">APPLICATION TRACKER</p><h2>Achievements<span>.</span></h2></div><button class="button" id="job-open">Add job <span>→</span></button></div>
+ <div class="stats" id="stats"></div><div id="job-list"></div>
+</section>
+</main>
+<footer><a class="brand" href="#home"><span>✳</span> KAAMAKAZE</a><small>Workspace data stays in this browser.</small></footer>
+<dialog id="profile-dialog" class="drawer"><header><h2>Your profile</h2><button class="close" data-close aria-label="Close profile">×</button></header>
+ <div class="switch"><button id="details-tab" aria-pressed="true">Profile details</button><button id="map-tab" aria-pressed="false">Experience map</button></div>
+ <form id="profile-form"><label>Name<input name="name" maxlength="120" autocomplete="name"></label><label>Resume contact line<input name="contact" maxlength="400" placeholder="Email · Location · Portfolio"></label><label>Education<textarea name="education" maxlength="8000" rows="3"></textarea></label><label>Experience<textarea name="experience" maxlength="8000" rows="4"></textarea></label><label>Projects<textarea name="projects" maxlength="8000" rows="4"></textarea></label><label>Skills<textarea name="skills" maxlength="8000" rows="3"></textarea></label><label>Notes shared with Kai<textarea name="notes" maxlength="30000" rows="5"></textarea></label><button class="button" type="submit">Save profile</button></form>
+ <div id="profile-map" hidden></div>
+</dialog>
+<dialog id="resume-dialog"><header><h2 id="resume-title">Resume</h2><button class="close" data-close aria-label="Close resume">×</button></header><form id="resume-form"><label>Resume text<textarea name="body" required maxlength="30000" rows="18"></textarea></label><div class="actions"><button class="button" type="submit">Save edits</button><button type="button" id="download" class="outline">Download text</button><button type="button" id="print" class="outline">Print / PDF</button></div></form><div id="resume-sources"></div></dialog>
+<dialog id="job-dialog" class="drawer"><header><h2 id="job-title">Add job</h2><button class="close" data-close aria-label="Close job">×</button></header>
+ <form id="job-form"><div class="pair"><label>Role<input name="role" required maxlength="120"></label><label>Company<input name="company" required maxlength="120"></label></div>
+ <label>Outcome<select name="status"><option>Planning</option><option>Applied</option><option>Interviewing</option><option>Offer received</option><option>Offer accepted</option><option>Closed without offer</option></select></label>
+ <div class="pair"><label>Applied on<input type="date" name="applied"></label><label>Outcome date<input type="date" name="outcome"></label></div>
+ <label>Timeline notes <small>optional</small><textarea name="timeline" maxlength="5000" rows="3" placeholder="Application deadline, interview dates, next steps…"></textarea></label>
+ <label>Resume used<select name="resumeId"></select></label>
+ <div id="feedback-fields" hidden><label>Feedback <small>optional</small><textarea name="feedback" maxlength="5000" rows="4" placeholder="What did you hear back?"></textarea></label><p id="revision-status" class="notice" role="status"></p><button class="outline" id="revise" type="button">Revise with Kai ✦</button></div>
+ <button class="button" type="submit">Save application</button></form>
+</dialog>
+<div id="toast" role="status"></div><pre id="print-copy"></pre>
+</body>
+</html>
