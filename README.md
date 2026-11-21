@@ -10,7 +10,13 @@ Requires Node.js 22 or newer. No packages need installing.
 node server.mjs
 ```
 
-Open http://127.0.0.1:3000. Set `OPENAI_API_KEY` in the server environment to enable Kai generation and feedback-based revisions. `OPENAI_MODEL` defaults to `gpt-4.1-mini`. `PORT` defaults to 3000, and `HOST` defaults to 127.0.0.1.
+Open http://127.0.0.1:3000. For local development, save `OPENAI_API_KEY` in the ignored `.env.local` file next to `server.mjs`. The server loads it on startup. On a host, set `OPENAI_API_KEY` in the server's secret settings. Both modes require API quota in the organization that issued the key. `OPENAI_MODEL` defaults to `gpt-4.1-mini`. `PORT` defaults to 3000, and `HOST` defaults to 127.0.0.1.
+
+### Try Kai with sample data
+
+- **Profile projects:** Built a subnetting tool that takes an IPv4 address and CIDR prefix and displays the network range.
+- **Job description:** Networking Intern. Help build network troubleshooting tools and explain IPv4 subnetting to users.
+- **Revision feedback:** Lead with the subnetting project and make the input and output explicit.
 
 Without a key, the browser can assemble a local draft from the supplied profile and rank separate skill lines against the job description. The UI labels those resumes **Local draft**. Feedback-based rewrites require Kai AI.
 
