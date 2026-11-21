@@ -1,6 +1,13 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { loadEnvFile } from 'node:process';
+import { fileURLToPath } from 'node:url';
 
+try {
+  loadEnvFile(fileURLToPath(new URL('.env.local', import.meta.url)));
+} catch (error) {
+  if (error.code !== 'ENOENT') throw new Error('Could not load .env.local.');
+}
 const apiKey = process.env.OPENAI_API_KEY?.trim();
 const model = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
 const assets = new Map([
@@ -76,7 +83,17 @@ async function generate(req, res) {
         messages: [{ role: 'system', content: instruction }, { role: 'user', content: JSON.stringify(input) }]
       })
     });
-    if (!upstream.ok) return send(res, 502, { error: 'Kai’s AI provider could not complete the request.' });
+    if (!upstream.ok) {
+      if (upstream.status === 429) {
+        const details = await upstream.json().catch(() => null);
+        if (details?.error?.code === 'insufficient_quota') {
+          return send(res, 503, { error: 'Kai’s OpenAI API project is out of quota. Check API billing or project limits, then retry.' });
+        }
+        return send(res, 429, { error: 'Kai’s AI provider is rate-limiting requests. Wait a moment and retry.' });
+      }
+      if (upstream.status === 401) return send(res, 503, { error: 'Kai’s server key was rejected. Check whether it has expired or been revoked.' });
+      return send(res, 502, { error: 'Kai’s AI provider could not complete the request.' });
+    }
     const result = await upstream.json();
     const choice = result.choices?.[0];
     if (choice?.finish_reason !== 'stop') throw new Error('Incomplete resume.');
